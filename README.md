@@ -20,7 +20,7 @@ You only need to configure some excel files, then run the scripts and wait.
 ![Format example](docu/example_excel.png)
 - excel files can have multiple tables, they are all loaded automatically
 - you can place multiple files in the project root; as long as they end on .xlsx or .csv, they are loaded (if you don't want them to run, you need to place them in a subfolder)
-- it is recommendable to have a seperate log file (via system.logging.logFile) for each run (not like in the screenshot), so that the logs dont overwrite each other on a successive iland simulation with the same project file
+- it is recommended to have a seperate log file (via system.logging.logFile) for each run (not like in the screenshot), so that the logs dont overwrite each other on a successive iland simulation with the same project file
 
 ### run settings
 - copy the file `settings.toml.template` to `settings.toml`
@@ -42,7 +42,7 @@ You only need to configure some excel files, then run the scripts and wait.
     - while the script is running, the workers will add the commands to either `status/successful-commands.txt` or `status/failed-commands.txt`, depending on if they ran without errors or not
     - recommend check: confirm via `screen -ls` if you actually see the ilandc-workers running; if they are not running and you don't know why, just run e.g. `bash instruction_queues/worker-0.sh` and check the command line output
     - if you have commands in the failed commands either check the log files or run the command individually without the ilandc runner to check what's wrong
-5. do a final check and see if all output sqlites where produced correctly; you can also run `python 01_prepare_queue.py` and if all results were produced correctly it should skip all of the runs
+5. do a final check and see if all output sqlites where produced correctly; definitely check `output_PNV_B1b_Berchtesgaden_heim_2000J_IPCC_4.5_mild.sqlite`; you can also run `python 01_prepare_queue.py` and if all results were produced correctly it should skip all of the runs
 
 
 
