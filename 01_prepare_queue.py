@@ -27,10 +27,10 @@ def get_input_projects(settings):
 def get_input_table_files(input_projects):
     table_files = []
     for project in input_projects:
-        for root, dirs, files in os.walk(project):
-            for file in files:
-                if file.endswith(".csv") or file.endswith(".xlsx"):
-                    table_files.append(os.path.join(root, file))
+        files = os.listdir(project)
+        for file in files:
+            if file.endswith(".csv") or file.endswith(".xlsx"):
+                table_files.append(os.path.join(project, file))
     return table_files
 
 
@@ -56,15 +56,16 @@ def read_tables_from_files(input_table_files):
 def check_already_completed_simulations(dataframe_dict):
     n_skipped = 0
     n_total = 0
-    for project_folder, df_list in dataframe_dict.items():
+    for table_path, df_list in dataframe_dict.items():
+        project_folder = os.path.dirname(table_path)
         for df in df_list:
             df["skipped"] = False
             # iterate line by line and check if output file was already produced
             for i_row, row in df.iterrows():
-                output_file = df["output_sqlite"]
+                output_file = row["output_sqlite"]
                 output_path = f"{project_folder}/output/{output_file}"
                 if os.path.exists(output_path):
-                    print(f"WARNING: skipping run_id {df["run_id"]} from project {project_folder} because {output_path} already exists")
+                    print(f"WARNING: skipping run_id {row['run_id']} from project {project_folder} because {output_path} already exists")
                     print("      if you want to redo the simulation, delete or move the sqlite to a different folder")
                     n_skipped += 1
                     df["skipped"].iloc[i_row] = True
@@ -96,10 +97,10 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
                 project_file = row["project_file"]
                 sim_years = row["sim_years"]
                 output_sqlite = row["output_sqlite"]
-                ilandc_exe = ilandc_settings["general"]["path_to_ilandc_executable"]
+                ilandc_executable = ilandc_settings["general"]["path_to_ilandc_executable"]
                 n_threads = ilandc_settings["threading"]["n_threads_per_worker"]
                 # ilandc project.xml 100
-                ilandc_command = f"ilandc {project_file} {sim_years} system.database.out={output_sqlite}"
+                ilandc_command = f"{ilandc_executable} {project_file} {sim_years} system.database.out={output_sqlite}"
                 # add optional arguments
                 for col in df.columns:
                     if col in required_columns or col == "skipped":
@@ -137,6 +138,8 @@ if __name__ == "__main__":
     settings = toml.load("settings.toml")
     # clear all files inside the status folder
     for file in os.listdir("status"):
+        if file == ".gitkeep":
+            continue
         os.remove(f"status/{file}")
     # get a list of all the given projects
     input_projects = get_input_projects(settings)

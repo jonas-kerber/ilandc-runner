@@ -12,6 +12,8 @@ if __name__ == "__main__":
         worker_name = worker_file.split(".")[0]
         session_name = f"ilandc-runner-{worker_name}"
         bash_command = f"bash instruction_queues/{worker_file}"
-        screen_command = f"screen -dmS {session_name} bash -c {bash_command}; screen -X -S {session_name} quit"
+        screen_command = f'screen -dmS {session_name} bash -c "{bash_command}; screen -X -S {session_name} quit"'
         os.system(screen_command)
         print(f"Started worker: {worker_file}")
+        print(screen_command)
+        print()

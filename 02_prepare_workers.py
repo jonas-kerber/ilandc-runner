@@ -8,9 +8,9 @@ def fill_template(project_path, command, start_folder):
     s += f'command="{command}"\n'
     s += f"$command\n"
     s += "if [ $? -eq 0 ]; then\n"
-    s += '    echo "$command" >> {start_folder}/status/successful-commands.txt\n'
+    s += f'    echo "$command" >> {start_folder}/status/successful-commands.txt\n'
     s += "else\n"
-    s += '    echo "$command" >> {start_folder}/status/failed-commands.txt\n'
+    s += f'    echo "$command" >> {start_folder}/status/failed-commands.txt\n'
     s += "fi\n"
     return s
 
