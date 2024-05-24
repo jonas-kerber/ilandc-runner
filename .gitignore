@@ -1,0 +1,9 @@
+archive/*
+.venv/*
+settings.toml
+
+# folders
+instruction_queues/*
+!instruction_queues/.gitkeep
+status/*
+!status/.gitkeep

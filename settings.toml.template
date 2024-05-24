@@ -1,0 +1,23 @@
+[general]
+# path to where your ilandc executable is located
+path_to_ilandc_executable = "/home/jkerber/iland-model/build/ilandc/ilandc"
+
+[input]
+# list all iland projects here
+# projects should have iland run tables as .xlsx or .csv in them (see README)
+iland_project_list = [
+    #/home/jonas/workspace/ilandc-runner/example_projects/BGD,
+    #/home/jonas/workspace/ilandc-runner/example_projects/flandern,
+    #/home/jonas/workspace/ilandc-runner/example_projects/invalid,
+    "/home/jonas/Downloads/new_format"
+]
+
+
+[threading]
+n_workers= 4                    # how many simulations to do in parallel
+n_threads_per_worker = 16       # how many threads for one iLand simulation worker (decrease this if you have multiple simulations in parallel)
+
+
+
+
+
