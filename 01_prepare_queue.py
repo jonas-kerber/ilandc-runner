@@ -49,7 +49,7 @@ def read_tables_from_files(input_table_files):
         # case 2: csv
         elif file.endswith(".csv"):
             df = pd.read_csv(file)
-            df_dict[file] = df
+            df_dict[file] = [df]
     return df_dict
 
 
@@ -65,8 +65,12 @@ def check_already_completed_simulations(dataframe_dict):
                 output_file = row["output_sqlite"]
                 output_path = f"{project_folder}/output/{output_file}"
                 if os.path.exists(output_path):
-                    print(f"WARNING: skipping run_id {row['run_id']} from project {project_folder} because {output_path} already exists")
-                    print("      if you want to redo the simulation, delete or move the sqlite to a different folder")
+                    print(
+                        f"WARNING: skipping run_id {row['run_id']} from project {project_folder} because {output_path} already exists"
+                    )
+                    print(
+                        "      if you want to redo the simulation, delete or move the sqlite to a different folder"
+                    )
                     n_skipped += 1
                     df["skipped"].iloc[i_row] = True
                 n_total += 1
@@ -97,7 +101,9 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
                 project_file = row["project_file"]
                 sim_years = row["sim_years"]
                 output_sqlite = row["output_sqlite"]
-                ilandc_executable = ilandc_settings["general"]["path_to_ilandc_executable"]
+                ilandc_executable = ilandc_settings["general"][
+                    "path_to_ilandc_executable"
+                ]
                 n_threads = ilandc_settings["threading"]["n_threads_per_worker"]
                 # ilandc project.xml 100
                 ilandc_command = f"{ilandc_executable} {project_file} {sim_years} system.database.out={output_sqlite}"
