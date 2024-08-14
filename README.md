@@ -13,14 +13,24 @@ You only need to configure some excel files, then run the scripts and wait.
 ### Excel csv tables
 - create one or more iLand projects
 - in the root folder of the iLand project, you can place a .xlsx or .csv file, where each line defines one run
-- the table has the following format:
-    - green columns are compulsory for each run, otherwise the script will fail
-    - yellow columns are optional, however they have to follow the syntax of the iland project file, e.g. project.system.database.climate
- (see [wiki](https://iland-model.org/project+file?highlight=project+file) for reference)
+- please refer to the screen shot for the correct format of the table (also a table like this is provided under `other/test.csv`)
+    - green columns: they are compulsory and the program will throw an error if they are not provided
+    - orange columns: (optional) these are iland options that should be overwritten for the run; they have to follow the syntax of the iland project file, e.g. project.system.database.climate
+         (see [wiki](https://iland-model.org/project+file?highlight=project+file) for reference)
+    - yellow columns: (optional) they change the way the rows are exectuted
+        - priority: decide which run is made first; lowest number starts
+        - ignore: ignore this run (in case you want to run it later)
+    - grey columns: (not processed; name has to start with an underscore) these are ignored by the runner, but might be for your reference
+    - (the colors are only for this explanation, but in your excel file you don't have to color them like this) 
 ![Format example](docu/example_excel.png)
-- excel files can have multiple tables, they are all loaded automatically
+- check the example excel file under `other/example.xlsx`
+- excel files can have multiple sheets/tables, they are all loaded automatically
 - you can place multiple files in the project root; as long as they end on .xlsx or .csv, they are loaded (if you don't want them to run, you need to place them in a subfolder)
-- it is recommended to have a seperate log file (via system.logging.logFile) for each run (not like in the screenshot), so that the logs dont overwrite each other on a successive iland simulation with the same project file
+- it is recommended to have a seperate log file (via system.logging.logFile) for each run (like in the screenshot), so that the logs dont overwrite each other on a successive iland simulation with the same project file
+
+
+
+
 
 ### run settings
 - copy the file `settings.toml.template` to `settings.toml`

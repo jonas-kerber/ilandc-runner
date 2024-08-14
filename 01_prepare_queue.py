@@ -27,14 +27,27 @@ def get_input_projects(settings):
 def get_input_table_files(input_projects):
     table_files = []
     for project in input_projects:
+        found_one = False
         files = os.listdir(project)
         for file in files:
             if file.endswith(".csv") or file.endswith(".xlsx"):
                 table_files.append(os.path.join(project, file))
+                found_one = True
+        if not found_one:
+            print(
+                f"WARNINING: No input tables (csv of xlsx) found in the project: {project}\n"
+            )
     return table_files
 
 
 def read_tables_from_files(input_table_files):
+    if len(input_table_files) == 0:
+        print("No input tables found in the given projects.")
+        print(
+            "Please check to make sure that there is at least one table in the paths given in the settings.toml"
+        )
+        raise Exception("No input tables found in the given projects.")
+
     df_dict = {}  # key: table name, value: dataframe
     for file in input_table_files:
         print(f"Reading file: {file}")
@@ -50,6 +63,7 @@ def read_tables_from_files(input_table_files):
         elif file.endswith(".csv"):
             df = pd.read_csv(file)
             df_dict[file] = [df]
+
     return df_dict
 
 
@@ -85,10 +99,9 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
     # e.g. output.stand.enabled (ref: https://iland-model.org/iLand+console)
     optional_args_suffices = ["output", "system", "model", "modules"]
 
-    lines = []
-    for table_name, dataframes in dataframe_dict.items():
+    commands = {}  # key: command string, value: priority
+    for _, dataframes in dataframe_dict.items():
         for df in dataframes:
-            lines.append(f"#{table_name}")
             # check if all required columns are present
             if not all(col in df.columns for col in required_columns):
                 raise Exception(
@@ -107,11 +120,32 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
                 n_threads = ilandc_settings["threading"]["n_threads_per_worker"]
                 # ilandc project.xml 100
                 ilandc_command = f"{ilandc_executable} {project_file} {sim_years} system.database.out={output_sqlite}"
+                priority = (
+                    0  # default priority, will be overwritten if set in the table
+                )
                 # add optional arguments
+                ignore = False
                 for col in df.columns:
-                    if col in required_columns or col == "skipped":
+                    if col in required_columns:
                         pass  # skip required columns
                     else:
+                        # ignore columns starting with _, e.g. for _comment
+                        if col.startswith("_"):
+                            continue
+                        # check priority
+                        if col == "priority":
+                            priority = row[col]
+                            continue
+                        if col == "ignore":
+                            if row[col]:
+                                print(
+                                    f"WARNING: Ignoring run_id {run_id} as specified in table."
+                                )
+                                ignore = True
+                                break
+                            continue
+                        if col == "skipped":
+                            continue
                         # check if column name has correct format
                         format_incorrect = False
                         if "." not in col:
@@ -128,16 +162,25 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
                         else:
                             ilandc_command += f" {col}={row[col]}"
                 # add to the list
-                if not row["skipped"]:
-                    lines.append(ilandc_command)
-                else:
-                    # add the skipped command to the file status/skipped-commands.sh
-                    with open("status/skipped-commands.sh", "a") as file:
-                        file.write(ilandc_command + "\n")
+                if not ignore:
+                    if not row["skipped"]:
+                        commands[ilandc_command] = priority
+                    else:
+                        # add the skipped command to the file status/skipped-commands.sh
+                        with open("status/skipped-commands.sh", "a") as file:
+                            file.write(ilandc_command + "\n")
+
         # write list of commands to file
         with open(OUTPUT_FILE, "w") as file:
-            for command in lines:
-                file.write(command + "\n")
+            # write commands by priority
+            sorted_priorities = sorted(set(commands.values()))
+            for prio in sorted_priorities:
+                # write priority comment
+                file.write(f"# Priority {prio}\n")
+                # write commands
+                for command, priority in commands.items():
+                    if priority == prio:
+                        file.write(command + "\n")
 
 
 if __name__ == "__main__":
