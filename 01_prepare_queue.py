@@ -100,7 +100,9 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
     optional_args_suffices = ["output", "system", "model", "modules"]
 
     commands = {}  # key: command string, value: priority
-    for _, dataframes in dataframe_dict.items():
+    commands_folder = {}  # key: command string, value: folder where to call this from
+    for table__name, dataframes in dataframe_dict.items():
+        folder_name = os.path.dirname(table__name)
         for df in dataframes:
             # check if all required columns are present
             if not all(col in df.columns for col in required_columns):
@@ -165,22 +167,22 @@ def convert_tables_into_ilandc_calls(dataframe_dict, ilandc_settings):
                 if not ignore:
                     if not row["skipped"]:
                         commands[ilandc_command] = priority
+                        commands_folder[ilandc_command] = folder_name
                     else:
                         # add the skipped command to the file status/skipped-commands.sh
                         with open("status/skipped-commands.sh", "a") as file:
-                            file.write(ilandc_command + "\n")
+                            file.write(f"cd {folder_name} && {ilandc_command}\n")
 
         # write list of commands to file
         with open(OUTPUT_FILE, "w") as file:
             # write commands by priority
             sorted_priorities = sorted(set(commands.values()))
             for prio in sorted_priorities:
-                # write priority comment
-                file.write(f"# Priority {prio}\n")
+                file.write(f"# priority: {prio}\n")
                 # write commands
                 for command, priority in commands.items():
                     if priority == prio:
-                        file.write(command + "\n")
+                        file.write(f"cd {folder_name} && {command}\n")
 
 
 if __name__ == "__main__":
